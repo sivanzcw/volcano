@@ -39,18 +39,18 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	kbinfoext "volcano.sh/volcano/pkg/client/informers/externalversions"
-	kbinfo "volcano.sh/volcano/pkg/client/informers/externalversions/scheduling/v1alpha2"
-	kblister "volcano.sh/volcano/pkg/client/listers/scheduling/v1alpha2"
-
 	vkbatchv1 "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
+	"volcano.sh/volcano/pkg/apis/bus/v1alpha1"
 	vkver "volcano.sh/volcano/pkg/client/clientset/versioned"
 	vkscheme "volcano.sh/volcano/pkg/client/clientset/versioned/scheme"
+	kbinfoext "volcano.sh/volcano/pkg/client/informers/externalversions"
 	vkinfoext "volcano.sh/volcano/pkg/client/informers/externalversions"
 	vkbatchinfo "volcano.sh/volcano/pkg/client/informers/externalversions/batch/v1alpha1"
 	vkcoreinfo "volcano.sh/volcano/pkg/client/informers/externalversions/bus/v1alpha1"
+	kbinfo "volcano.sh/volcano/pkg/client/informers/externalversions/scheduling/v1alpha2"
 	vkbatchlister "volcano.sh/volcano/pkg/client/listers/batch/v1alpha1"
 	vkcorelister "volcano.sh/volcano/pkg/client/listers/bus/v1alpha1"
+	kblister "volcano.sh/volcano/pkg/client/listers/scheduling/v1alpha2"
 	"volcano.sh/volcano/pkg/controllers/apis"
 	jobcache "volcano.sh/volcano/pkg/controllers/cache"
 	"volcano.sh/volcano/pkg/controllers/job/state"
@@ -157,9 +157,26 @@ func NewJobController(
 	cc.jobSynced = cc.jobInformer.Informer().HasSynced
 
 	cc.cmdInformer = vkinfoext.NewSharedInformerFactory(cc.vkClients, 0).Bus().V1alpha1().Commands()
-	cc.cmdInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: cc.addCommand,
-	})
+	cc.cmdInformer.Informer().AddEventHandler(
+		cache.FilteringResourceEventHandler{
+			FilterFunc: func(obj interface{}) bool {
+				switch obj.(type) {
+				case *v1alpha1.Command:
+					cmd := obj.(*v1alpha1.Command)
+					if cmd.TargetObject.APIVersion == vkbatchv1.SchemeGroupVersion.String() &&
+						cmd.TargetObject.Kind == "Job" {
+						return true
+					}
+
+					return false
+				default:
+					return false
+				}
+			},
+			Handler: cache.ResourceEventHandlerFuncs{
+				AddFunc: cc.addCommand,
+			},
+		})
 	cc.cmdLister = cc.cmdInformer.Lister()
 	cc.cmdSynced = cc.cmdInformer.Informer().HasSynced
 

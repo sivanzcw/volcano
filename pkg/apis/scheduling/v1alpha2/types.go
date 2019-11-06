@@ -98,6 +98,28 @@ const (
 	NotEnoughPodsReason string = "NotEnoughTasks"
 )
 
+// QueueEvent represent the phase of queue
+type QueueEvent string
+
+const (
+	// QueueOutOfSyncEvent is triggered if PodGroup/Queue were updated
+	QueueOutOfSyncEvent QueueEvent = "OutOfSync"
+	// QueueCommandIssuedEvent is triggered if a command is raised by user
+	QueueCommandIssuedEvent QueueEvent = "CommandIssued"
+)
+
+// QueueAction is the action that queue controller will take according to the event.
+type QueueAction string
+
+const (
+	// SyncQueueAction is the action to sync queue status.
+	SyncQueueAction QueueAction = "SyncQueue"
+	// OpenQueueAction is the action to open queue
+	OpenQueueAction QueueAction = "OpenQueue"
+	// CloseQueueAction is the action to close queue
+	CloseQueueAction QueueAction = "CloseQueue"
+)
+
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

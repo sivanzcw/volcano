@@ -270,7 +270,7 @@ func TestSyncQueue(t *testing.T) {
 		c.queueInformer.Informer().GetIndexer().Add(testcase.queue)
 		c.kbClient.SchedulingV1alpha2().Queues().Create(testcase.queue)
 
-		err := c.syncQueue(testcase.queue.Name)
+		err := c.syncQueue(testcase.queue)
 		item, _ := c.kbClient.SchedulingV1alpha2().Queues().Get(testcase.queue.Name, metav1.GetOptions{})
 		if err != nil && testcase.ExpectValue != item.Status.Pending {
 			t.Errorf("case %d (%s): expected: %v, got %v ", i, testcase.Name, testcase.ExpectValue, c.queue.Len())

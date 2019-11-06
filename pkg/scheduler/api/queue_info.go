@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"volcano.sh/volcano/pkg/apis/scheduling"
+	"volcano.sh/volcano/pkg/apis/scheduling/v1alpha2"
 )
 
 // QueueID is UID type, serves as unique ID for each queue
@@ -55,4 +56,15 @@ func (q *QueueInfo) Clone() *QueueInfo {
 		Weight: q.Weight,
 		Queue:  q.Queue,
 	}
+}
+
+//QueueRequest struct
+type QueueRequest struct {
+	// Name is queue name
+	Name string
+
+	// Event is event of queue
+	Event v1alpha2.QueueEvent
+	// Action is action to be performed
+	Action v1alpha2.QueueAction
 }
