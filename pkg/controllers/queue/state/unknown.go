@@ -17,32 +17,42 @@ import (
 	"volcano.sh/volcano/pkg/apis/scheduling/v1alpha2"
 )
 
-type closedState struct {
+type unknownState struct {
 	queue *v1alpha2.Queue
 }
 
-func (cs *closedState) Execute(action v1alpha2.QueueAction) error {
+func (us *unknownState) Execute(action v1alpha2.QueueAction) error {
 	switch action {
 	case v1alpha2.OpenQueueAction:
-		return OpenQueue(cs.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
+		return OpenQueue(us.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
 			status.State = v1alpha2.QueueStateOpen
 			return
 		})
 	case v1alpha2.CloseQueueAction:
-		return SyncQueue(cs.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
-			status.State = v1alpha2.QueueStateClosed
+		return CloseQueue(us.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
+			if len(podGroupList) == 0 {
+				status.State = v1alpha2.QueueStateClosed
+				return
+			}
+			status.State = v1alpha2.QueueStateClosing
+
 			return
 		})
 	default:
-		return SyncQueue(cs.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
-			specState := cs.queue.Spec.State
+		return SyncQueue(us.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
+			specState := us.queue.Spec.State
 			if specState == v1alpha2.QueueStateOpen {
 				status.State = v1alpha2.QueueStateOpen
 				return
 			}
 
 			if specState == v1alpha2.QueueStateClosed {
-				status.State = v1alpha2.QueueStateClosed
+				if len(podGroupList) == 0 {
+					status.State = v1alpha2.QueueStateClosed
+					return
+				}
+				status.State = v1alpha2.QueueStateClosing
+
 				return
 			}
 
@@ -50,6 +60,4 @@ func (cs *closedState) Execute(action v1alpha2.QueueAction) error {
 			return
 		})
 	}
-
-	return nil
 }

@@ -34,6 +34,8 @@ const (
 	QueueStateClosed QueueState = "Closed"
 	// QueueStateClosing indicate `Closing` state of queue
 	QueueStateClosing QueueState = "Closing"
+	// QueueStateUnknown indicate `Unknown` state of queue
+	QueueStateUnknown QueueState = "Unknown"
 )
 
 // These are the valid phase of podGroups.

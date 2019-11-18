@@ -14,112 +14,14 @@ limitations under the License.
 package queue
 
 import (
-	"fmt"
-	"reflect"
-
 	busv1alpha1 "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
 	schedulingv1alpha2 "volcano.sh/volcano/pkg/apis/scheduling/v1alpha2"
 	schedulingapi "volcano.sh/volcano/pkg/scheduler/api"
 
-	"k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/golang/glog"
 )
-
-func (c *Controller) syncQueue(queue *schedulingv1alpha2.Queue) error {
-	glog.V(4).Infof("Begin sync queue %s", queue.Name)
-
-	podGroups := c.getPodGroups(queue.Name)
-	queueStatus := schedulingv1alpha2.QueueStatus{}
-
-	for _, pgKey := range podGroups {
-		// Ignore error here, tt can not occur.
-		ns, name, _ := cache.SplitMetaNamespaceKey(pgKey)
-
-		// TODO: check NotFound error and sync local cache.
-		pg, err := c.pgLister.PodGroups(ns).Get(name)
-		if err != nil {
-			return err
-		}
-
-		switch pg.Status.Phase {
-		case schedulingv1alpha2.PodGroupPending:
-			queueStatus.Pending++
-		case schedulingv1alpha2.PodGroupRunning:
-			queueStatus.Running++
-		case schedulingv1alpha2.PodGroupUnknown:
-			queueStatus.Unknown++
-		case schedulingv1alpha2.PodGroupInqueue:
-			queueStatus.Inqueue++
-		}
-	}
-
-	// If the `state` value is empty, the status of queue will be set as `Open`
-	// If the `state` value is `Open`, then the status of queue will also be `Open`
-	// If the `state` value is `Closed`, then we need to further consider whether there
-	// is a podgroup under the queue. if there is a podgroup under the queue, the status
-	// of the queue will be set as `Closing`, while if there is no podgroup under the queue,
-	// the status of queue will be set as `Stopped`.
-	queueStatus.State = queue.Spec.State
-	if len(queueStatus.State) == 0 {
-		queueStatus.State = schedulingv1alpha2.QueueStateOpen
-	}
-
-	if queueStatus.State == schedulingv1alpha2.QueueStateClosed {
-		if len(podGroups) != 0 {
-			queueStatus.State = schedulingv1alpha2.QueueStateClosing
-		}
-	}
-
-	// ignore update when status does not change
-	if reflect.DeepEqual(queueStatus, queue.Status) {
-		return nil
-	}
-
-	newQueue := queue.DeepCopy()
-	newQueue.Status = queueStatus
-
-	if _, err := c.vcClient.SchedulingV1alpha2().Queues().UpdateStatus(newQueue); err != nil {
-		glog.Errorf("Failed to update status of Queue %s: %v", newQueue.Name, err)
-		return err
-	}
-
-	return nil
-}
-
-func (c *Controller) openQueue(queue *schedulingv1alpha2.Queue) error {
-	glog.V(4).Infof("Begin open queue %s", queue.Name)
-
-	queue.Spec.State = schedulingv1alpha2.QueueStateOpen
-
-	if _, err := c.vcClient.SchedulingV1alpha2().Queues().Update(queue); err != nil {
-		c.recorder.Event(queue, v1.EventTypeNormal, string(schedulingv1alpha2.OpenQueueAction),
-			fmt.Sprintf("Open queue failed for %v", err))
-		return err
-	}
-	c.recorder.Event(queue, v1.EventTypeNormal, string(schedulingv1alpha2.OpenQueueAction),
-		fmt.Sprintf("Open queue succeed"))
-
-	return nil
-}
-
-func (c *Controller) closeQueue(queue *schedulingv1alpha2.Queue) error {
-	glog.V(4).Infof("Begin close queue %s", queue.Name)
-
-	queue.Spec.State = schedulingv1alpha2.QueueStateClosed
-
-	if _, err := c.vcClient.SchedulingV1alpha2().Queues().Update(queue); err != nil {
-		c.recorder.Event(queue, v1.EventTypeNormal, string(schedulingv1alpha2.CloseQueueAction),
-			fmt.Sprintf("Close queue failed for %v", err))
-		glog.Errorf("Failed to close queue %s: %v", queue.Name, err)
-		return err
-	}
-	c.recorder.Event(queue, v1.EventTypeNormal, string(schedulingv1alpha2.OpenQueueAction),
-		fmt.Sprintf("Close queue succeed"))
-
-	return nil
-}
 
 func (c *Controller) enqueue(req *schedulingapi.QueueRequest) {
 	c.queue.Add(req)
@@ -143,12 +45,12 @@ func (c *Controller) deleteQueue(obj interface{}) {
 	if !ok {
 		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {
-			glog.Errorf("Couldn't get object from tombstone %#v", obj)
+			glog.Errorf("Couldn't get object from tombstone %#v.", obj)
 			return
 		}
 		queue, ok = tombstone.Obj.(*schedulingv1alpha2.Queue)
 		if !ok {
-			glog.Errorf("Tombstone contained object that is not a Queue: %#v", obj)
+			glog.Errorf("Tombstone contained object that is not a Queue: %#v.", obj)
 			return
 		}
 	}
@@ -161,13 +63,13 @@ func (c *Controller) deleteQueue(obj interface{}) {
 func (c *Controller) updateQueue(old, new interface{}) {
 	oldQueue, ok := old.(*schedulingv1alpha2.Queue)
 	if !ok {
-		glog.Errorf("Can not covert old object %v to queues.scheduling.sigs.dev", old)
+		glog.Errorf("Can not covert old object %v to queues.scheduling.sigs.dev.", old)
 		return
 	}
 
 	newQueue, ok := new.(*schedulingv1alpha2.Queue)
 	if !ok {
-		glog.Errorf("Can not covert new object %v to queues.scheduling.sigs.dev", old)
+		glog.Errorf("Can not covert new object %v to queues.scheduling.sigs.dev.", old)
 		return
 	}
 
@@ -218,12 +120,12 @@ func (c *Controller) deletePodGroup(obj interface{}) {
 	if !ok {
 		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {
-			glog.Errorf("Couldn't get object from tombstone %#v", obj)
+			glog.Errorf("Couldn't get object from tombstone %#v.", obj)
 			return
 		}
 		pg, ok = tombstone.Obj.(*schedulingv1alpha2.PodGroup)
 		if !ok {
-			glog.Errorf("Tombstone contained object that is not a PodGroup: %#v", obj)
+			glog.Errorf("Tombstone contained object that is not a PodGroup: %#v.", obj)
 			return
 		}
 	}
@@ -248,7 +150,7 @@ func (c *Controller) deletePodGroup(obj interface{}) {
 func (c *Controller) addCommand(obj interface{}) {
 	cmd, ok := obj.(*busv1alpha1.Command)
 	if !ok {
-		glog.Errorf("Obj %v is not command", obj)
+		glog.Errorf("Obj %v is not command.", obj)
 		return
 	}
 
@@ -268,4 +170,15 @@ func (c *Controller) getPodGroups(key string) []string {
 	}
 
 	return podGroups
+}
+
+func (c *Controller) recordEventsForQueue(name, eventType, reason, message string) {
+	queue, err := c.queueLister.Get(name)
+	if err != nil {
+		glog.Errorf("Get queue %s failed for %v.", name, err)
+		return
+	}
+
+	c.recorder.Event(queue, eventType, reason, message)
+	return
 }

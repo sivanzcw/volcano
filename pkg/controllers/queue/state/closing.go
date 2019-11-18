@@ -24,11 +24,41 @@ type closingState struct {
 func (cs *closingState) Execute(action v1alpha2.QueueAction) error {
 	switch action {
 	case v1alpha2.OpenQueueAction:
-		return OpenQueue(cs.queue)
+		return OpenQueue(cs.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
+			status.State = v1alpha2.QueueStateOpen
+			return
+		})
 	case v1alpha2.CloseQueueAction:
-		return SyncQueue(cs.queue)
+		return SyncQueue(cs.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
+			if len(podGroupList) == 0 {
+				status.State = v1alpha2.QueueStateClosed
+				return
+			}
+			status.State = v1alpha2.QueueStateClosing
+
+			return
+		})
 	default:
-		return SyncQueue(cs.queue)
+		return SyncQueue(cs.queue, func(status *v1alpha2.QueueStatus, podGroupList []string) {
+			specState := cs.queue.Spec.State
+			if specState == v1alpha2.QueueStateOpen {
+				status.State = v1alpha2.QueueStateOpen
+				return
+			}
+
+			if specState == v1alpha2.QueueStateClosed {
+				if len(podGroupList) == 0 {
+					status.State = v1alpha2.QueueStateClosed
+					return
+				}
+
+				status.State = v1alpha2.QueueStateClosing
+				return
+			}
+
+			status.State = v1alpha2.QueueStateUnknown
+			return
+		})
 	}
 
 	return nil

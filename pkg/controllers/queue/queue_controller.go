@@ -49,7 +49,6 @@ const (
 	// maxRetries is the number of times a queue or command will be retried before it is dropped out of the queue.
 	// With the current rate-limiter in use (5ms*2^(maxRetries-1)) the following numbers represent the times
 	// a queue or command is going to be requeued:
-	//
 	// 5ms, 10ms, 20ms, 40ms, 80ms, 160ms, 320ms, 640ms, 1.3s, 2.6s, 5.1s, 10.2s, 20.4s, 41s, 82s
 	maxRetries = 15
 )
@@ -143,13 +142,7 @@ func NewQueueController(
 			switch obj.(type) {
 			case *busv1alpha1.Command:
 				cmd := obj.(*busv1alpha1.Command)
-				if cmd.TargetObject != nil &&
-					cmd.TargetObject.APIVersion == schedulingv1alpha2.SchemeGroupVersion.String() &&
-					cmd.TargetObject.Kind == "Queue" {
-					return true
-				}
-
-				return false
+				return IsQueueReference(cmd.TargetObject)
 			default:
 				return false
 			}
@@ -179,15 +172,15 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 	defer c.queue.ShutDown()
 	defer c.commandQueue.ShutDown()
 
-	glog.Infof("Starting queue controller")
-	defer glog.Infof("Shutting down queue controller")
+	glog.Infof("Starting queue controller.")
+	defer glog.Infof("Shutting down queue controller.")
 
 	go c.queueInformer.Informer().Run(stopCh)
 	go c.pgInformer.Informer().Run(stopCh)
 	go c.cmdInformer.Informer().Run(stopCh)
 
 	if !cache.WaitForCacheSync(stopCh, c.queueSynced, c.pgSynced, c.cmdSynced) {
-		glog.Errorf("unable to sync caches for queue controller")
+		glog.Errorf("unable to sync caches for queue controller.")
 		return
 	}
 
@@ -215,7 +208,7 @@ func (c *Controller) processNextWorkItem() bool {
 
 	req, ok := obj.(*schedulerapi.QueueRequest)
 	if !ok {
-		glog.V(2).Infof("%v is not a valid queue request struct", obj)
+		glog.Errorf("%v is not a valid queue request struct.", obj)
 		return true
 	}
 
@@ -228,13 +221,13 @@ func (c *Controller) processNextWorkItem() bool {
 func (c *Controller) handleQueue(req *schedulerapi.QueueRequest) error {
 	startTime := time.Now()
 	defer func() {
-		glog.V(4).Infof("Finished syncing queue %s (%v)", req.Name, time.Since(startTime))
+		glog.V(4).Infof("Finished syncing queue %s (%v).", req.Name, time.Since(startTime))
 	}()
 
 	queue, err := c.queueLister.Get(req.Name)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			glog.V(4).Infof("Queue %s has been deleted", req.Name)
+			glog.V(4).Infof("Queue %s has been deleted.", req.Name)
 			return nil
 		}
 
@@ -261,12 +254,15 @@ func (c *Controller) handleQueueErr(err error, obj interface{}) {
 	}
 
 	if c.queue.NumRequeues(obj) < maxRetries {
-		glog.V(2).Infof("Error syncing queue %v for %v", obj, err)
+		glog.V(4).Infof("Error syncing queue request %v for %v.", obj, err)
 		c.queue.AddRateLimited(obj)
 		return
 	}
 
-	glog.V(2).Infof("Dropping queue %v out of the queue for %v", obj, err)
+	req, _ := obj.(*schedulerapi.QueueRequest)
+	c.recordEventsForQueue(req.Name, v1.EventTypeWarning, string(req.Action),
+		fmt.Sprintf("%v queue failed for %v", req.Action, err))
+	glog.V(2).Infof("Dropping queue request %v out of the queue for %v.", obj, err)
 	c.queue.Forget(obj)
 }
 
@@ -284,7 +280,7 @@ func (c *Controller) processNextCommand() bool {
 
 	cmd, ok := obj.(*busv1alpha1.Command)
 	if !ok {
-		glog.V(2).Infof("%v is not a valid Command struct", obj)
+		glog.Errorf("%v is not a valid Command struct.", obj)
 		return true
 	}
 
@@ -297,7 +293,7 @@ func (c *Controller) processNextCommand() bool {
 func (c *Controller) handleCommand(cmd *busv1alpha1.Command) error {
 	startTime := time.Now()
 	defer func() {
-		glog.V(4).Infof("Finished syncing command %s/%s (%v)", cmd.Namespace, cmd.Name, time.Since(startTime))
+		glog.V(4).Infof("Finished syncing command %s/%s (%v).", cmd.Namespace, cmd.Name, time.Since(startTime))
 	}()
 
 	err := c.vcClient.BusV1alpha1().Commands(cmd.Namespace).Delete(cmd.Name, nil)
@@ -327,11 +323,11 @@ func (c *Controller) handleCommandErr(err error, obj interface{}) {
 	}
 
 	if c.commandQueue.NumRequeues(obj) < maxRetries {
-		glog.V(2).Infof("Error syncing command %v for %v", obj, err)
+		glog.V(4).Infof("Error syncing command %v for %v.", obj, err)
 		c.commandQueue.AddRateLimited(obj)
 		return
 	}
 
-	glog.V(2).Infof("Dropping command %v out of the queue for %v", obj, err)
+	glog.V(2).Infof("Dropping command %v out of the queue for %v.", obj, err)
 	c.commandQueue.Forget(obj)
 }

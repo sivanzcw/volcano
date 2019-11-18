@@ -17,25 +17,28 @@ import (
 	"volcano.sh/volcano/pkg/apis/scheduling/v1alpha2"
 )
 
-//State interface
+// State interface
 type State interface {
 	// Execute executes the actions based on current state.
 	Execute(action v1alpha2.QueueAction) error
 }
 
-//ActionFn will open or close queue.
-type ActionFn func(queue *v1alpha2.Queue) error
+// UpdateQueueStatusFn updates the queue status
+type UpdateQueueStatusFn func(status *v1alpha2.QueueStatus, podGroupList []string)
+
+// QueueActionFn will open, close or sync queue.
+type QueueActionFn func(queue *v1alpha2.Queue, fn UpdateQueueStatusFn) error
 
 var (
 	// SyncQueue will sync queue status.
-	SyncQueue ActionFn
+	SyncQueue QueueActionFn
 	// OpenQueue will set state of queue to open
-	OpenQueue ActionFn
+	OpenQueue QueueActionFn
 	// CloseQueue will set state of queue to close
-	CloseQueue ActionFn
+	CloseQueue QueueActionFn
 )
 
-//NewState gets the state from queue status
+// NewState gets the state from queue status
 func NewState(queue *v1alpha2.Queue) State {
 	switch queue.Status.State {
 	case "", v1alpha2.QueueStateOpen:
@@ -44,6 +47,8 @@ func NewState(queue *v1alpha2.Queue) State {
 		return &closedState{queue: queue}
 	case v1alpha2.QueueStateClosing:
 		return &closingState{queue: queue}
+	case v1alpha2.QueueStateUnknown:
+		return &unknownState{queue: queue}
 	}
 
 	return nil
