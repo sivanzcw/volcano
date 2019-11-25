@@ -86,14 +86,17 @@ func (pp *proportionPlugin) OnSessionOpen(ssn *framework.Session) {
 		}
 
 		for status, tasks := range job.TaskStatusIndex {
+			glog.Infof("++++++++++++++++status is %s", status)
 			if api.AllocatedStatus(status) {
 				for _, t := range tasks {
+					glog.Infof("++++++++++++++++++task allocatd is %s", t.Name)
 					attr := pp.queueOpts[job.Queue]
 					attr.allocated.Add(t.Resreq)
 					attr.request.Add(t.Resreq)
 				}
 			} else if status == api.Pending {
 				for _, t := range tasks {
+					glog.Infof("++++++++++++++++++++task pending is %s",t.Name)
 					attr := pp.queueOpts[job.Queue]
 					attr.request.Add(t.Resreq)
 				}
