@@ -96,7 +96,7 @@ func (pp *proportionPlugin) OnSessionOpen(ssn *framework.Session) {
 				}
 			} else if status == api.Pending {
 				for _, t := range tasks {
-					glog.Infof("++++++++++++++++++++task pending is %s",t.Name)
+					glog.Infof("++++++++++++++++++++task pending is %s", t.Name)
 					attr := pp.queueOpts[job.Queue]
 					attr.request.Add(t.Resreq)
 				}
@@ -186,12 +186,13 @@ func (pp *proportionPlugin) OnSessionOpen(ssn *framework.Session) {
 				allocations[job.Queue] = attr.allocated.Clone()
 			}
 			allocated := allocations[job.Queue]
+			glog.Infof("+++++++++++++allocated resource is %v", *allocated)
 			if allocated.Less(reclaimee.Resreq) {
 				glog.V(3).Infof("Failed to allocate resource for Task <%s/%s> in Queue <%s>, not enough resource.",
 					reclaimee.Namespace, reclaimee.Name, job.Queue)
 				continue
 			}
-
+			glog.Infof("++++++++++++++attr.deserved is %#+v", attr.deserved.Clone())
 			allocated.Sub(reclaimee.Resreq)
 			if attr.deserved.LessEqual(allocated) {
 				victims = append(victims, reclaimee)
