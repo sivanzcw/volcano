@@ -222,7 +222,7 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 				if task.InitResreq.LessEqual(node.Releasing) {
 					glog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
 						task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
-					if err := stmt.Pipeline(task, node.Name); err != nil {
+					if err := ssn.Pipeline(task, node.Name); err != nil {
 						glog.Errorf("Failed to pipeline Task %v on %v",
 							task.UID, node.Name)
 					}
