@@ -137,7 +137,9 @@ func (ssn *Session) Reclaimable(reclaimer *api.TaskInfo, reclaimees []*api.TaskI
 		}
 		// Plugins in this tier made decision if victims is not nil
 		if victims != nil {
-			return victims
+			if true == tier.ArbitrationTerminated {
+				return victims
+			}
 		}
 	}
 

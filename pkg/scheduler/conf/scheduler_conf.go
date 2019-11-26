@@ -27,6 +27,14 @@ type SchedulerConfiguration struct {
 // Tier defines plugin tier
 type Tier struct {
 	Plugins []PluginOption `yaml:"plugins"`
+
+	// ArbitrationTerminated indicates whether the plugin's arbitration of a certain thing ends,
+	// if the conclusion has been reached in this tier.
+	// During the arbitration process of all plugins, the arbitration ends at this tier,
+	// when both of the following are true:
+	// 1. arbitrationTerminated is true
+	// 2. conclusion has been reached in this tier
+	ArbitrationTerminated bool `yaml:"arbitrationTerminated"`
 }
 
 // PluginOption defines the options of plugin
