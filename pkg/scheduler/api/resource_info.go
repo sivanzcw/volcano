@@ -263,6 +263,51 @@ func (r *Resource) Less(rr *Resource) bool {
 	return true
 }
 
+// Less checks whether a resource is less than other
+func (r *Resource) TemLess(rr *Resource) bool {
+	lessFunc := func(l, r float64) bool {
+		if l < r {
+			return true
+		}
+		return false
+	}
+
+	if !lessFunc(r.MilliCPU, rr.MilliCPU) {
+		return false
+	}
+	if !lessFunc(r.Memory, rr.Memory) {
+		return false
+	}
+
+	if r.ScalarResources == nil {
+		if rr.ScalarResources != nil {
+			for _, rrQuant := range rr.ScalarResources {
+				if rrQuant <= minMilliScalarResources {
+					return false
+				}
+			}
+		}
+		return true
+	}
+
+	for rName, rQuant := range r.ScalarResources {
+		if rQuant == 0 {
+			continue
+		}
+
+		if rr.ScalarResources == nil {
+			return false
+		}
+
+		rrQuant := rr.ScalarResources[rName]
+		if !lessFunc(rQuant, rrQuant) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // LessEqual checks whether a resource is less than other resource
 func (r *Resource) LessEqual(rr *Resource) bool {
 	lessEqualFunc := func(l, r, diff float64) bool {
