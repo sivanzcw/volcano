@@ -98,6 +98,11 @@ func (pc *Scheduler) loadSchedulerConf() {
 		}
 	}
 
+	schedConf, err = CovertSchedulerConfToLatestSchedulerConf(schedConf)
+	if err != nil {
+		panic(err)
+	}
+
 	pc.actions, pc.plugins, err = loadSchedulerConf(schedConf)
 	if err != nil {
 		panic(err)

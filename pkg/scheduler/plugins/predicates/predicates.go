@@ -72,28 +72,30 @@ type predicateEnable struct {
 }
 
 func enablePredicate(args framework.Arguments) predicateEnable {
-
 	/*
-		   User Should give predicatesEnable in this format(predicate.MemoryPressureEnable, predicate.DiskPressureEnable, predicate.PIDPressureEnable.
-		   Currently supported only for MemoryPressure, DiskPressure, PIDPressure predicate checks.
+	   User Should give predicatesEnable in this format(predicate.MemoryPressureEnable, predicate.DiskPressureEnable, predicate.PIDPressureEnable.
+	   Currently supported only for MemoryPressure, DiskPressure, PIDPressure predicate checks.
 
-		   actions: "reclaim, allocate, backfill, preempt"
-		   tiers:
-		   - plugins:
-		     - name: priority
-		     - name: gang
-		     - name: conformance
-		   - plugins:
-		     - name: drf
-		     - name: predicates
-		       arguments:
-		 		 predicate.MemoryPressureEnable: true
-		 		 predicate.DiskPressureEnable: true
-				 predicate.PIDPressureEnable: true
-		     - name: proportion
-		     - name: nodeorder
+	   actions:
+	   - name: reclaim
+	   - name: allocate
+	   - name: backfill
+	   - name: preempt
+	   tiers:
+	   - plugins:
+	     - name: priority
+	     - name: gang
+	     - name: conformance
+	   - plugins:
+	     - name: drf
+	     - name: predicates
+	       arguments:
+	         predicate.MemoryPressureEnable: true
+	         predicate.DiskPressureEnable: true
+	         predicate.PIDPressureEnable: true
+	     - name: proportion
+	     - name: nodeorder
 	*/
-
 	predicate := predicateEnable{
 		memoryPressureEnable: false,
 		diskPressureEnable:   false,

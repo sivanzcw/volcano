@@ -27,6 +27,13 @@ type GetIntTestCases struct {
 	expectValue int
 }
 
+type GetFloat64TestCases struct {
+	arg         Arguments
+	key         string
+	baseValue   float64
+	expectValue float64
+}
+
 func TestArgumentsGetInt(t *testing.T) {
 	key1 := "intkey"
 
@@ -69,6 +76,53 @@ func TestArgumentsGetInt(t *testing.T) {
 		baseValue := c.baseValue
 		c.arg.GetInt(nil, c.key)
 		c.arg.GetInt(&baseValue, c.key)
+		if baseValue != c.expectValue {
+			t.Errorf("index %d, value should be %v, but not %v", index, c.expectValue, baseValue)
+		}
+	}
+}
+
+func TestArgumentsGetFloat64(t *testing.T) {
+	key1 := "float64key"
+
+	cases := []GetFloat64TestCases{
+		{
+			arg: Arguments{
+				"anotherKey": "12",
+			},
+			key:         key1,
+			baseValue:   1.2,
+			expectValue: 1.2,
+		},
+		{
+			arg: Arguments{
+				key1: "1.5",
+			},
+			key:         key1,
+			baseValue:   1.2,
+			expectValue: 1.5,
+		},
+		{
+			arg: Arguments{
+				key1: "errorValue",
+			},
+			key:         key1,
+			baseValue:   1.2,
+			expectValue: 1.2,
+		},
+		{
+			arg: Arguments{
+				key1: "",
+			},
+			key:         key1,
+			baseValue:   1.2,
+			expectValue: 1.2,
+		},
+	}
+
+	for index, c := range cases {
+		baseValue := c.baseValue
+		c.arg.GetFloat64(&baseValue, c.key)
 		if baseValue != c.expectValue {
 			t.Errorf("index %d, value should be %v, but not %v", index, c.expectValue, baseValue)
 		}

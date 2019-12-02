@@ -45,6 +45,26 @@ func (a Arguments) GetInt(ptr *int, key string) {
 	*ptr = value
 }
 
+//GetFloat64 get the float64 value from string
+func (a Arguments) GetFloat64(ptr *float64, key string) {
+	if ptr == nil {
+		return
+	}
+
+	argv, ok := a[key]
+	if !ok || argv == "" {
+		return
+	}
+
+	value, err := strconv.ParseFloat(argv, 64)
+	if err != nil {
+		klog.Warningf("Could not parse argument: %s for key %s, with err %v", argv, key, err)
+		return
+	}
+
+	*ptr = value
+}
+
 //GetBool get the bool value from string
 func (a Arguments) GetBool(ptr *bool, key string) {
 	if ptr == nil {

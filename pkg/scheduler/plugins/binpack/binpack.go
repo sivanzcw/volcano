@@ -96,7 +96,12 @@ func calculateWeight(args framework.Arguments) priorityWeight {
 	   User Should give priorityWeight in this format(binpack.weight, binpack.cpu, binpack.memory).
 	   Support change the weight about cpu, memory and additional resource by arguments.
 
-	   actions: "enqueue, reclaim, allocate, backfill, preempt"
+	   actions:
+	   - name: enqueue
+	   - name: reclaim
+	   - name: allocate
+	   - name: backfill
+	   - name: preempt
 	   tiers:
 	   - plugins:
 	     - name: binpack

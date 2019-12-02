@@ -21,16 +21,26 @@ import (
 
 	"volcano.sh/volcano/pkg/apis/scheduling"
 	"volcano.sh/volcano/pkg/scheduler/api"
+	"volcano.sh/volcano/pkg/scheduler/conf"
 	"volcano.sh/volcano/pkg/scheduler/framework"
 	"volcano.sh/volcano/pkg/scheduler/util"
 )
 
+var (
+	// defaultOverUsedResourceRatio defines the default overUsed resource ratio for enqueue action
+	defaultOverUsedResourceRatio = 1.2
+)
+
 type enqueueAction struct {
 	ssn *framework.Session
+
+	arguments framework.Arguments
 }
 
-func New() *enqueueAction {
-	return &enqueueAction{}
+func New(args framework.Arguments) framework.Action {
+	return &enqueueAction{
+		arguments: args,
+	}
 }
 
 func (enqueue *enqueueAction) Name() string {
@@ -42,6 +52,9 @@ func (enqueue *enqueueAction) Initialize() {}
 func (enqueue *enqueueAction) Execute(ssn *framework.Session) {
 	klog.V(3).Infof("Enter Enqueue ...")
 	defer klog.V(3).Infof("Leaving Enqueue ...")
+
+	overUsedResourceRatio := defaultOverUsedResourceRatio
+	enqueue.arguments.GetFloat64(&overUsedResourceRatio, conf.OverUsedResourceRatio)
 
 	queues := util.NewPriorityQueue(ssn.QueueOrderFn)
 	queueMap := map[api.QueueID]*api.QueueInfo{}
@@ -77,7 +90,7 @@ func (enqueue *enqueueAction) Execute(ssn *framework.Session) {
 	emptyRes := api.EmptyResource()
 	nodesIdleRes := api.EmptyResource()
 	for _, node := range ssn.Nodes {
-		nodesIdleRes.Add(node.Allocatable.Clone().Multi(1.2).Sub(node.Used))
+		nodesIdleRes.Add(node.Allocatable.Clone().Multi(overUsedResourceRatio).Sub(node.Used))
 	}
 
 	for {

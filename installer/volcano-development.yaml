@@ -11,7 +11,10 @@ metadata:
   namespace: volcano-system
 data:
   volcano-scheduler.conf: |
-    actions: "enqueue, allocate, backfill"
+    actions:
+    - name: enqueue
+    - name: allocate
+    - name: backfill
     tiers:
     - plugins:
       - name: priority

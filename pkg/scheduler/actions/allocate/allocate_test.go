@@ -152,7 +152,7 @@ func TestAllocate(t *testing.T) {
 		},
 	}
 
-	allocate := New()
+	allocate := New(framework.Arguments{})
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

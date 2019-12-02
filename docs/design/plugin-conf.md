@@ -54,7 +54,11 @@ will preempt other jobs, although it's already allocated "enough" resource accor
 1. `"tiers.plugins.drf.disableTaskOrder"` is `true`, so `drf` will not impact task order phase/action
 
 ```yaml
-actions: "reclaim, allocate, backfill, preempt"
+actions:
+- name: reclaim
+- name: allocate
+- name: backfill
+- name: preempt
 tiers:
 - plugins:
   - name: "priority"

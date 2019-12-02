@@ -16,12 +16,46 @@ limitations under the License.
 
 package conf
 
+const (
+	// OverUsedResourceRatio is resource overUsed ratio for enqueue action
+	// It determines the number of `pending` pods that the scheduler will tolerate
+	// when the resources of the cluster is insufficient
+	OverUsedResourceRatio = "overUsedResourceRatio"
+)
+
+const (
+	// SchedulerConfigVersionV1 is v1 version of scheduler configuration
+	SchedulerConfigVersionV1 = "v1"
+	// SchedulerConfigVersionV2 is v2 version of scheduler configuration
+	SchedulerConfigVersionV2 = "v2"
+)
+
 // SchedulerConfiguration defines the configuration of scheduler.
-type SchedulerConfiguration struct {
+type V1SchedulerConfiguration struct {
+	// Version is scheduler config version
+	Version string `yaml:"version"`
 	// Actions defines the actions list of scheduler in order
 	Actions string `yaml:"actions"`
 	// Tiers defines plugins in different tiers
 	Tiers []Tier `yaml:"tiers"`
+}
+
+// SchedulerConfiguration defines the configuration of scheduler.
+type SchedulerConfiguration struct {
+	// Version is scheduler config version
+	Version string `yaml:"version"`
+	// Actions defines the actions list of scheduler in order
+	Actions []Action `yaml:"actions"`
+	// Tiers defines plugins in different tiers
+	Tiers []Tier `yaml:"tiers"`
+}
+
+// Action describes a struct of an action resource
+type Action struct {
+	// Identifier of the action
+	Name string `yaml:"name"`
+	// Argument holds the parameters to configure the given action
+	Arguments map[string]string `yaml:"arguments"`
 }
 
 // Tier defines plugin tier
