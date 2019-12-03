@@ -195,7 +195,7 @@ func (pp *proportionPlugin) OnSessionOpen(ssn *framework.Session) {
 			glog.Infof("++++++++++++++attr.deserved is %#+v", attr.deserved.Clone())
 			r := allocated.Sub(reclaimee.Resreq)
 			glog.Infof("++++++++sub resources is %#+v", r)
-			if attr.deserved.TemLess(allocated) {
+			if attr.deserved.LessEqualStrict(allocated) {
 				victims = append(victims, reclaimee)
 			}
 		}
