@@ -77,7 +77,7 @@ func (enqueue *enqueueAction) Execute(ssn *framework.Session) {
 	emptyRes := api.EmptyResource()
 	nodesIdleRes := api.EmptyResource()
 	for _, node := range ssn.Nodes {
-		nodesIdleRes.Add(node.Allocatable.Clone().Multi(1.2).Sub(node.Used))
+		nodesIdleRes.Add(node.Allocatable.Clone().Multi(2).Sub(node.Used))
 	}
 
 	for {
