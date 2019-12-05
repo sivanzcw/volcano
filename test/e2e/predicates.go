@@ -47,7 +47,7 @@ var _ = Describe("Predicates E2E Test", func() {
 
 		job := createJob(context, spec)
 
-		err := waitTasksReady(context, job, nn)
+		err := waitTasksReady(context, job, nn, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = waitTasksPending(context, job, nn)
@@ -94,7 +94,7 @@ var _ = Describe("Predicates E2E Test", func() {
 		}
 
 		job := createJob(context, spec)
-		err := waitTasksReady(context, job, int(rep))
+		err := waitTasksReady(context, job, int(rep), 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pods := getTasksOfJob(context, job)
@@ -141,7 +141,7 @@ var _ = Describe("Predicates E2E Test", func() {
 		}
 
 		job := createJob(context, spec)
-		err := waitTasksReady(context, job, int(rep))
+		err := waitTasksReady(context, job, int(rep), 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pods := getTasksOfJob(context, job)
@@ -188,7 +188,7 @@ var _ = Describe("Predicates E2E Test", func() {
 		}
 
 		job := createJob(context, spec)
-		err := waitTasksReady(context, job, 2)
+		err := waitTasksReady(context, job, 2, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pods := getTasksOfJob(context, job)
@@ -237,7 +237,7 @@ var _ = Describe("Predicates E2E Test", func() {
 		err = removeTaintsFromAllNodes(context, taints)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitTasksReady(context, job, 1)
+		err = waitTasksReady(context, job, 1, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -292,7 +292,7 @@ var _ = Describe("Predicates E2E Test", func() {
 		}
 
 		job1 := createJob(context, spec1)
-		err = waitTasksReady(context, job1, 1)
+		err = waitTasksReady(context, job1, 1, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		job2 := createJob(context, spec2)
@@ -302,7 +302,7 @@ var _ = Describe("Predicates E2E Test", func() {
 		err = removeTaintsFromAllNodes(context, taints)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitTasksReady(context, job2, 1)
+		err = waitTasksReady(context, job2, 1, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
