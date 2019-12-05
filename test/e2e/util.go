@@ -391,7 +391,7 @@ func createJobInner(context *context, jobSpec *jobSpec) (*batchv1alpha1.Job, err
 	return context.vcclient.BatchV1alpha1().Jobs(job.Namespace).Create(job)
 }
 
-func waitTaskPhase(ctx *context, job *batchv1alpha1.Job, phase []v1.PodPhase, taskNum int) error {
+func waitTaskPhase(ctx *context, job *batchv1alpha1.Job, phase []v1.PodPhase, taskNum, num int) error {
 	var additionalError error
 	err := wait.Poll(100*time.Millisecond, oneMinute, func() (bool, error) {
 		pods, err := ctx.kubeclient.CoreV1().Pods(job.Namespace).List(metav1.ListOptions{})
@@ -411,10 +411,10 @@ func waitTaskPhase(ctx *context, job *batchv1alpha1.Job, phase []v1.PodPhase, ta
 			}
 		}
 
-		ready := taskNum <= readyTaskNum
+		ready := num <= readyTaskNum
 		if !ready {
 			additionalError = fmt.Errorf("expected job '%s' to have %d ready pods, actual got %d", job.Name,
-				taskNum,
+				num,
 				readyTaskNum)
 		}
 		return ready, nil
@@ -607,16 +607,16 @@ func getJobStatusDetail(job *batchv1alpha1.Job) string {
 		job.Status.Succeeded, job.Status.Terminating, job.Status.Failed)
 }
 
-func waitJobReady(ctx *context, job *batchv1alpha1.Job) error {
-	return waitTasksReady(ctx, job, int(job.Spec.MinAvailable))
+func waitJobReady(ctx *context, job *batchv1alpha1.Job, num int) error {
+	return waitTasksReady(ctx, job, int(job.Spec.MinAvailable), num)
 }
 
 func waitJobPending(ctx *context, job *batchv1alpha1.Job) error {
-	return waitTaskPhase(ctx, job, []v1.PodPhase{v1.PodPending}, int(job.Spec.MinAvailable))
+	return waitTaskPhase(ctx, job, []v1.PodPhase{v1.PodPending}, int(job.Spec.MinAvailable), int(job.Spec.MinAvailable))
 }
 
-func waitTasksReady(ctx *context, job *batchv1alpha1.Job, taskNum int) error {
-	return waitTaskPhase(ctx, job, []v1.PodPhase{v1.PodRunning, v1.PodSucceeded}, taskNum)
+func waitTasksReady(ctx *context, job *batchv1alpha1.Job, taskNum, num int) error {
+	return waitTaskPhase(ctx, job, []v1.PodPhase{v1.PodRunning, v1.PodSucceeded}, taskNum, num)
 }
 
 func waitTasksReadyEx(ctx *context, job *batchv1alpha1.Job, taskNum map[string]int) error {
@@ -624,7 +624,7 @@ func waitTasksReadyEx(ctx *context, job *batchv1alpha1.Job, taskNum map[string]i
 }
 
 func waitTasksPending(ctx *context, job *batchv1alpha1.Job, taskNum int) error {
-	return waitTaskPhase(ctx, job, []v1.PodPhase{v1.PodPending}, taskNum)
+	return waitTaskPhase(ctx, job, []v1.PodPhase{v1.PodPending}, taskNum, taskNum)
 }
 
 func waitJobStateReady(ctx *context, job *batchv1alpha1.Job) error {

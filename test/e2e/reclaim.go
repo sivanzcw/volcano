@@ -33,14 +33,14 @@ var _ = Describe("Job E2E Test", func() {
 				{
 					img: defaultBusyBoxImage,
 					req: oneCPU,
-					min: rep,
+					min: 1,
 					rep: rep,
 				},
 			},
 			queue: defaultQueue1,
 		})
 
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, int(rep))
 		Expect(err).NotTo(HaveOccurred())
 
 		job2 := createJob(context, &jobSpec{
@@ -49,14 +49,14 @@ var _ = Describe("Job E2E Test", func() {
 				{
 					img: defaultBusyBoxImage,
 					req: oneCPU,
-					min: rep-1,
+					min: 1,
 					rep: rep,
 				},
 			},
 			queue: defaultQueue2,
 		})
 
-		err = waitJobReady(context, job2)
+		err = waitJobReady(context, job2, int(rep)-1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
