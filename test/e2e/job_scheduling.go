@@ -52,7 +52,7 @@ var _ = Describe("Job E2E Test", func() {
 			},
 		})
 
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -123,7 +123,7 @@ var _ = Describe("Job E2E Test", func() {
 		err = deleteReplicaSet(context, replicaset.Name)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitJobReady(context, job)
+		err = waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -257,7 +257,7 @@ var _ = Describe("Job E2E Test", func() {
 
 		job := createJob(context, spec)
 
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -370,7 +370,7 @@ var _ = Describe("Job E2E Test", func() {
 			},
 		}
 		job := createJob(context, spec)
-		err = waitJobReady(context, job)
+		err = waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pods := getTasksOfJob(context, baseJob)

@@ -119,7 +119,7 @@ var _ = Describe("Job E2E Test: Test Job PVCs", func() {
 			},
 		})
 
-		err = waitJobReady(context, job)
+		err = waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		job, err = context.vcclient.BatchV1alpha1().Jobs(namespace).Get(jobName, metav1.GetOptions{})

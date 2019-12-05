@@ -343,7 +343,7 @@ var _ = Describe("Job Error Handling", func() {
 		}
 		By("Create the Job")
 		job := createJob(context, jobSpec)
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Taint all nodes")
@@ -402,7 +402,7 @@ var _ = Describe("Job Error Handling", func() {
 		}
 		By("Create the Job")
 		job := createJob(context, jobSpec)
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Taint all nodes")

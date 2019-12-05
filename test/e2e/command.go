@@ -53,7 +53,7 @@ var _ = Describe("Job E2E Test: Test Job Command", func() {
 			},
 		})
 		//Pod is running
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 		//Job Status is running
 		err = waitJobStateReady(context, job)
@@ -86,7 +86,7 @@ var _ = Describe("Job E2E Test: Test Job Command", func() {
 			},
 		})
 		//Job is running
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 		err = waitJobStateReady(context, job)
 		Expect(err).NotTo(HaveOccurred())
@@ -105,7 +105,7 @@ var _ = Describe("Job E2E Test: Test Job Command", func() {
 		ResumeJob(jobName, namespace)
 
 		//Job is running again
-		err = waitJobReady(context, job)
+		err = waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 		err = waitJobStateReady(context, job)
 		Expect(err).NotTo(HaveOccurred())
@@ -192,7 +192,7 @@ var _ = Describe("Job E2E Test: Test Job Command", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Pod is running
-		err = waitJobReady(context, job)
+		err = waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 		// Job Status is running
 		err = waitJobStateReady(context, job)

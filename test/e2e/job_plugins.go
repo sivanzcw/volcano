@@ -75,7 +75,7 @@ var _ = Describe("Job E2E Test: Test Job Plugins", func() {
 			},
 		})
 
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pluginName := fmt.Sprintf("%s-svc", jobName)
@@ -145,7 +145,7 @@ var _ = Describe("Job E2E Test: Test Job Plugins", func() {
 			},
 		})
 
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pluginName := fmt.Sprintf("%s-ssh", jobName)
@@ -203,7 +203,7 @@ var _ = Describe("Job E2E Test: Test Job Plugins", func() {
 			},
 		})
 
-		err := waitJobReady(context, job)
+		err := waitJobReady(context, job, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		pluginName := fmt.Sprintf("%s-ssh", jobName)
