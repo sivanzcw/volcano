@@ -47,7 +47,7 @@ var _ = Describe("Queue E2E Test", func() {
 		spec.name = "q1-qj-1"
 		spec.queue = defaultQueue1
 		job1 := createJob(context, spec)
-		err := waitJobReady(context, job1)
+		err := waitJobReady(context, job1, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = waitQueueStatus(func() (bool, error) {

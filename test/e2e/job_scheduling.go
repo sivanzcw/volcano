@@ -80,13 +80,13 @@ var _ = Describe("Job E2E Test", func() {
 		job.name = "mqj-3"
 		job3 := createJob(context, job)
 
-		err := waitJobReady(context, job1)
+		err := waitJobReady(context, job1, 1)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitJobReady(context, job2)
+		err = waitJobReady(context, job2, 1)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitJobReady(context, job3)
+		err = waitJobReady(context, job3, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -146,7 +146,7 @@ var _ = Describe("Job E2E Test", func() {
 
 		job.name = "gang-fq-qj1"
 		job1 := createJob(context, job)
-		err := waitJobReady(context, job1)
+		err := waitJobReady(context, job1, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		job.name = "gang-fq-qj2"
@@ -154,7 +154,7 @@ var _ = Describe("Job E2E Test", func() {
 		err = waitJobStatePending(context, job2)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitJobReady(context, job1)
+		err = waitJobReady(context, job1, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -178,15 +178,15 @@ var _ = Describe("Job E2E Test", func() {
 
 		job.name = "preemptee-qj"
 		job1 := createJob(context, job)
-		err := waitTasksReady(context, job1, int(rep))
+		err := waitTasksReady(context, job1, int(rep), 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		job.name = "preemptor-qj"
 		job2 := createJob(context, job)
-		err = waitTasksReady(context, job1, int(rep)/2)
+		err = waitTasksReady(context, job1, int(rep)/2, 1)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitTasksReady(context, job2, int(rep)/2)
+		err = waitTasksReady(context, job2, int(rep)/2, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -210,7 +210,7 @@ var _ = Describe("Job E2E Test", func() {
 
 		job.name = "multipreemptee-qj"
 		job1 := createJob(context, job)
-		err := waitTasksReady(context, job1, int(rep))
+		err := waitTasksReady(context, job1, int(rep), 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		job.name = "multipreemptor-qj1"
@@ -221,13 +221,13 @@ var _ = Describe("Job E2E Test", func() {
 		job3 := createJob(context, job)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitTasksReady(context, job1, int(rep)/3)
+		err = waitTasksReady(context, job1, int(rep)/3, 1)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitTasksReady(context, job2, int(rep)/3)
+		err = waitTasksReady(context, job2, int(rep)/3, 1)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = waitTasksReady(context, job3, int(rep)/3)
+		err = waitTasksReady(context, job3, int(rep)/3, 1)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -282,7 +282,7 @@ var _ = Describe("Job E2E Test", func() {
 
 		spec.name = "st-qj-1"
 		job1 := createJob(context, spec)
-		err := waitJobReady(context, job1)
+		err := waitJobReady(context, job1, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		now := time.Now()
@@ -319,7 +319,7 @@ var _ = Describe("Job E2E Test", func() {
 		}
 
 		baseJob := createJob(context, spec)
-		err := waitJobReady(context, baseJob)
+		err := waitJobReady(context, baseJob, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		basePods := getTasksOfJob(context, baseJob)
@@ -524,7 +524,7 @@ var _ = Describe("Job E2E Test", func() {
 
 		By("occupy all cluster resources")
 		occupiedJob := createJobToNamespace("default", 123, rep*2)
-		err = waitJobReady(context, occupiedJob)
+		err = waitJobReady(context, occupiedJob, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		for i := 0; i < int(rep); i++ {
@@ -612,7 +612,7 @@ var _ = Describe("Job E2E Test", func() {
 
 		By("occupy all cluster resources")
 		occupiedJob := createJobToQueue("default", 123, rep*2)
-		err := waitJobReady(context, occupiedJob)
+		err := waitJobReady(context, occupiedJob, 1)
 		Expect(err).NotTo(HaveOccurred())
 
 		for i := 0; i < int(rep); i++ {
