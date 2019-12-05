@@ -381,9 +381,9 @@ func createJobInner(context *context, jobSpec *jobSpec) (*batchv1alpha1.Job, err
 	}
 
 	if jobSpec.min > 0 {
-		job.Spec.MinAvailable = jobSpec.min
+		job.Spec.MinAvailable = 1
 	} else {
-		job.Spec.MinAvailable = min
+		job.Spec.MinAvailable = 1
 	}
 
 	job.Spec.Volumes = jobSpec.volumes

@@ -42,5 +42,21 @@ var _ = Describe("Job E2E Test", func() {
 
 		err := waitJobReady(context, job)
 		Expect(err).NotTo(HaveOccurred())
+
+		job2 := createJob(context, &jobSpec{
+			name: "qj-2",
+			tasks: []taskSpec{
+				{
+					img: defaultBusyBoxImage,
+					req: oneCPU,
+					min: rep-1,
+					rep: rep,
+				},
+			},
+			queue: defaultQueue2,
+		})
+
+		err = waitJobReady(context, job2)
+		Expect(err).NotTo(HaveOccurred())
 	})
 })
