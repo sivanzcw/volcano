@@ -236,18 +236,28 @@ func cleanupTestContext(cxt *context) {
 func createQueues(cxt *context) {
 	var err error
 
-	for _, q := range cxt.queues {
-		_, err = cxt.vcclient.SchedulingV1alpha2().Queues().Create(&schedulingv1alpha2.Queue{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: q,
-			},
-			Spec: schedulingv1alpha2.QueueSpec{
-				Weight: 1,
-			},
-		})
+	_, err = cxt.vcclient.SchedulingV1alpha2().Queues().Create(&schedulingv1alpha2.Queue{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: defaultQueue1,
+		},
+		Spec: schedulingv1alpha2.QueueSpec{
+			Weight: 1,
+		},
+	})
 
-		Expect(err).NotTo(HaveOccurred())
-	}
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = cxt.vcclient.SchedulingV1alpha2().Queues().Create(&schedulingv1alpha2.Queue{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: defaultQueue2,
+		},
+		Spec: schedulingv1alpha2.QueueSpec{
+			Weight: 100000,
+		},
+	})
+
+	Expect(err).NotTo(HaveOccurred())
+
 }
 
 func deleteQueues(cxt *context) {
