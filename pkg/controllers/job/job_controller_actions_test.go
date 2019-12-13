@@ -19,10 +19,9 @@ package job
 import (
 	"errors"
 	"fmt"
-	"testing"
-
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 
 	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
 	schedulingv1alpha2 "volcano.sh/volcano/pkg/apis/scheduling/v1alpha2"
@@ -42,6 +41,7 @@ func TestKillJobFunc(t *testing.T) {
 		JobInfo        *apis.JobInfo
 		Services       []v1.Service
 		ConfigMaps     []v1.ConfigMap
+		Secrets        []v1.Secret
 		Pods           map[string]*v1.Pod
 		Plugins        []string
 		ExpextVal      error
@@ -52,6 +52,7 @@ func TestKillJobFunc(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "job1",
 					Namespace: namespace,
+					UID:       "e7f18111-1cec-11ea-b688-fa163ec79500",
 				},
 			},
 			PodGroup: &schedulingv1alpha2.PodGroup{
@@ -80,10 +81,10 @@ func TestKillJobFunc(t *testing.T) {
 					},
 				},
 			},
-			ConfigMaps: []v1.ConfigMap{
+			Secrets: []v1.Secret{
 				{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "job1-ssh",
+						Name:      "job1-e7f18111-1cec-11ea-b688-fa163ec79500-ssh",
 						Namespace: namespace,
 					},
 				},
@@ -110,10 +111,10 @@ func TestKillJobFunc(t *testing.T) {
 				}
 			}
 
-			for _, configMap := range testcase.ConfigMaps {
-				_, err := fakeController.kubeClient.CoreV1().ConfigMaps(namespace).Create(&configMap)
+			for _, secret := range testcase.Secrets {
+				_, err := fakeController.kubeClient.CoreV1().Secrets(namespace).Create(&secret)
 				if err != nil {
-					t.Error("Error While Creating ConfigMaps")
+					t.Error("Error While Creating secrets")
 				}
 			}
 
@@ -155,13 +156,13 @@ func TestKillJobFunc(t *testing.T) {
 				}
 
 				if plugin == "ssh" {
-					_, err := fakeController.kubeClient.CoreV1().ConfigMaps(namespace).Get(fmt.Sprint(testcase.Job.Name, "-ssh"), metav1.GetOptions{})
+					_, err := fakeController.kubeClient.CoreV1().Secrets(namespace).Get(
+						fmt.Sprintf("%s-%s-%s", testcase.Job.Name, testcase.Job.UID, "ssh"), metav1.GetOptions{})
 					if err == nil {
-						t.Errorf("Case %d (%s): expected: ConfigMap to be deleted, but not deleted because of error %s", i, testcase.Name, err.Error())
+						t.Errorf("Case %d (%s): expected: Secret to be deleted, but not", i, testcase.Name)
 					}
 				}
 			}
-
 		})
 	}
 }

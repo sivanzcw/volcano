@@ -165,7 +165,7 @@ func DeleteConfigmap(job *vcbatch.Job, kubeClients kubernetes.Interface, cmName 
 
 // DeleteSecret delete secret
 func DeleteSecret(job *vcbatch.Job, kubeClients kubernetes.Interface, secretName string) error {
-	err := kubeClients.CoreV1().ConfigMaps(job.Namespace).Delete(secretName, nil)
+	err := kubeClients.CoreV1().Secrets(job.Namespace).Delete(secretName, nil)
 	if err != nil && true == apierrors.IsNotFound(err) {
 		return nil
 	}
