@@ -108,7 +108,7 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	}
 
 	//workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), checkNode)
-	workqueue.ParallelizeUntil(ctx, 16, allNodes, checkNode)
+	workqueue.ParallelizeUntil(ctx, 100, allNodes, checkNode)
 
 	//processedNodes := int(numFoundNodes) + len(filteredNodesStatuses) + len(failedPredicateMap)
 	lastProcessedNodeIndex = (lastProcessedNodeIndex + int(processedNodes)) % allNodes
@@ -144,7 +144,7 @@ func PrioritizeNodes(task *api.TaskInfo, nodes []*api.NodeInfo, batchFn api.Batc
 		nodeOrderScoreMap[node.Name] = orderScore
 		workerLock.Unlock()
 	}
-	workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), scoreNode)
+	workqueue.ParallelizeUntil(context.TODO(), 100, len(nodes), scoreNode)
 	reduceScores, err := reduceFn(task, pluginNodeScoreMap)
 	if err != nil {
 		klog.Errorf("Error in Calculating Priority for the node:%v", err)
