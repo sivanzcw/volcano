@@ -65,7 +65,7 @@ func CalculateNumOfFeasibleNodesToFind(numAllNodes int32) (numNodes int32) {
 func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateFn) ([]*api.NodeInfo, *api.FitErrors) {
 	//var workerLock sync.Mutex
 
-	var errorLock sync.Mutex
+	//var errorLock sync.Mutex
 	fe := api.NewFitErrors()
 
 	allNodes := len(nodes)
@@ -94,9 +94,9 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 		if err := fn(task, node); err != nil {
 			klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s>: %v",
 				task.Namespace, task.Name, node.Name, err)
-			errorLock.Lock()
-			fe.SetNodeError(node.Name, err)
-			errorLock.Unlock()
+			//errorLock.Lock()
+			//fe.SetNodeError(node.Name, err)
+			//errorLock.Unlock()
 			return
 		}
 		klog.Infof("++++++++++single predicate nodes, after predicateNodes is %v", time.Since(startTime))
