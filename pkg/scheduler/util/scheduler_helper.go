@@ -23,6 +23,7 @@ import (
 	"sort"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"k8s.io/klog"
 
@@ -88,6 +89,8 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 			task.Namespace, task.Name, node.Name, task.Resreq, node.Idle)
 
 		// TODO (k82cn): Enable eCache for performance improvement.
+		startTime := time.Now()
+		klog.Infof("++++++++++Single Predicate Nodes startTime is %v", startTime)
 		if err := fn(task, node); err != nil {
 			klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s>: %v",
 				task.Namespace, task.Name, node.Name, err)
@@ -96,6 +99,7 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 			errorLock.Unlock()
 			return
 		}
+		klog.Infof("++++++++++single predicate nodes, after predicateNodes is %v", time.Since(startTime))
 
 		//check if the number of found nodes is more than the numNodesTofind
 		length := atomic.AddInt32(&numFoundNodes, 1)
@@ -106,9 +110,11 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 			predicateNodes[length-1] = node
 		}
 	}
-
+	startTime := time.Now()
+	klog.Infof("++++++++++Predicate Nodes startTime is %v", startTime)
 	//workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), checkNode)
 	workqueue.ParallelizeUntil(ctx, 100, allNodes, checkNode)
+	klog.Infof("++++++++++predicate, after predicateNodes is %v", time.Since(startTime))
 
 	//processedNodes := int(numFoundNodes) + len(filteredNodesStatuses) + len(failedPredicateMap)
 	lastProcessedNodeIndex = (lastProcessedNodeIndex + int(processedNodes)) % allNodes
