@@ -19,6 +19,7 @@ package predicates
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/scheduler/algorithm"
@@ -154,6 +155,8 @@ func (pp *predicatesPlugin) OnSessionOpen(ssn *framework.Session) {
 	predicate := enablePredicate(pp.pluginArguments)
 
 	ssn.AddPredicateFn(pp.Name(), func(task *api.TaskInfo, node *api.NodeInfo) error {
+		startTime := time.Now()
+		defer klog.Infof("++++++++++single predicateFn time is %v", time.Since(startTime))
 		nodeInfo, found := nodeMap[node.Name]
 		if !found {
 			nodeInfo = cache.NewNodeInfo(node.Pods()...)
