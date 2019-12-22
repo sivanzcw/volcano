@@ -18,6 +18,7 @@ package allocate
 
 import (
 	"k8s.io/klog"
+	"time"
 
 	"volcano.sh/volcano/pkg/apis/scheduling"
 	"volcano.sh/volcano/pkg/scheduler/api"
@@ -42,6 +43,8 @@ func (alloc *allocateAction) Initialize() {}
 func (alloc *allocateAction) Execute(ssn *framework.Session) {
 	klog.V(3).Infof("Enter Allocate ...")
 	defer klog.V(3).Infof("Leaving Allocate ...")
+	startTime := time.Now()
+	klog.Infof("++++++++++allocate startTime is %v", startTime)
 
 	// the allocation for pod may have many stages
 	// 1. pick a namespace named N (using ssn.NamespaceOrderFn)
@@ -90,6 +93,7 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 		klog.V(4).Infof("Added Job <%s/%s> into Queue <%s>", job.Namespace, job.Name, job.Queue)
 		jobs.Push(job)
 	}
+	klog.Infof("++++++++++since allocate time, after job add is %v", time.Since(startTime))
 
 	klog.V(3).Infof("Try to allocate resource to %d Namespaces", len(jobsMap))
 
@@ -110,6 +114,8 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 	// Because we believe that number of queues would less than namespaces in most case.
 	// And, this action would make the resource usage among namespace balanced.
 	for {
+		startTime := time.Now()
+		klog.Infof("++++++++++for loop startTime is %v", startTime)
 		if namespaces.Empty() {
 			break
 		}
@@ -167,6 +173,7 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 			}
 			pendingTasks[job.UID] = tasks
 		}
+		klog.Infof("++++++++++since for loop, after task add is %v", time.Since(startTime))
 		tasks := pendingTasks[job.UID]
 
 		klog.V(3).Infof("Try to allocate resource to %d tasks of Job <%v/%v>",
@@ -175,6 +182,8 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 		stmt := ssn.Statement()
 
 		for !tasks.Empty() {
+			startTime := time.Now()
+			klog.Infof("++++++++++task for loop startTime is %v", startTime)
 			task := tasks.Pop().(*api.TaskInfo)
 
 			klog.V(3).Infof("There are <%d> nodes for Job <%v/%v>",
@@ -193,10 +202,12 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 				job.NodesFitErrors[task.UID] = fitErrors
 				break
 			}
+			klog.Infof("++++++++++since task for loop, after predicateNodes is %v", time.Since(startTime))
 
 			nodeScores := util.PrioritizeNodes(task, predicateNodes, ssn.BatchNodeOrderFn, ssn.NodeOrderMapFn, ssn.NodeOrderReduceFn)
-
+			klog.Infof("++++++++++since task for loop, after prioritizeNodes is %v", time.Since(startTime))
 			node := util.SelectBestNode(nodeScores)
+			klog.Infof("++++++++++since task for loop, after SelectBestNode is %v", time.Since(startTime))
 			// Allocate idle resource to the task.
 			if task.InitResreq.LessEqual(node.Idle) {
 				klog.V(3).Infof("Binding Task <%v/%v> to node <%v>",
@@ -228,12 +239,15 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 				break
 			}
 		}
+		klog.Infof("++++++++++since for loop, after task ranged is %v", time.Since(startTime))
 
 		if ssn.JobReady(job) {
 			stmt.Commit()
 		} else {
 			stmt.Discard()
 		}
+
+		klog.Infof("++++++++++since for loop, after task commit is %v", time.Since(startTime))
 
 		// Added Namespace back until no job in Namespace.
 		namespaces.Push(namespace)
