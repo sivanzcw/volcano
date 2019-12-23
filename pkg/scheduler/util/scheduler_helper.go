@@ -22,7 +22,6 @@ import (
 	"math/rand"
 	"sort"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"k8s.io/klog"
@@ -67,24 +66,42 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 
 	//var errorLock sync.Mutex
 	fe := api.NewFitErrors()
+	var workerLock sync.Mutex
+	sortStartTime := time.Now()
+	tempNodes := make([]*api.NodeInfo, len(nodes))
+	for _, n := range nodes {
+		tempNodes = append(tempNodes, n.Clone())
+	}
 
-	allNodes := len(nodes)
-	numNodesToFind := CalculateNumOfFeasibleNodesToFind(int32(allNodes))
+	for i := 0; i < len(tempNodes)-1; i++ {
+		for j := i + 1; j < len(tempNodes); j++ {
+			if nodes[i].FutureIdle().Less(nodes[j].FutureIdle()) {
+				temp := tempNodes[i].Clone()
+				nodes[i] = tempNodes[j].Clone()
+				nodes[j] = temp
+			}
+		}
+	}
+	klog.Infof("++++++++++sortTime is %v", time.Since(sortStartTime))
+
+	//allNodes := len(nodes)
+	//numNodesToFind := CalculateNumOfFeasibleNodesToFind(int32(allNodes))
 
 	//allocate enough space to avoid growing it
-	predicateNodes := make([]*api.NodeInfo, numNodesToFind)
+	predicateNodes := make([]*api.NodeInfo, 3)
 
-	numFoundNodes := int32(0)
-	processedNodes := int32(0)
+	//numFoundNodes := int32(0)
+	//processedNodes := int32(0)
 
 	//create a context with cancellation
-	ctx, cancel := context.WithCancel(context.Background())
+	//ctx, cancel := context.WithCancel(context.Background())
 
 	checkNode := func(index int) {
 		// Check the nodes starting from where is left off in the previous scheduling cycle,
 		// to make sure all nodes have the same chance of being examined across pods.
-		node := nodes[(lastProcessedNodeIndex+index)%allNodes]
-		atomic.AddInt32(&processedNodes, 1)
+		//node := nodes[(lastProcessedNodeIndex+index)%allNodes]
+		node := tempNodes[index]
+		//atomic.AddInt32(&processedNodes, 1)
 		klog.V(3).Infof("Considering Task <%v/%v> on node <%v>: <%v> vs. <%v>",
 			task.Namespace, task.Name, node.Name, task.Resreq, node.Idle)
 
@@ -102,25 +119,27 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 		//	return
 		//}
 		klog.Infof("++++++++++single predicate nodes, after predicateNodes is %v", time.Since(startTime))
-
+		workerLock.Lock()
+		predicateNodes = append(predicateNodes, node)
+		workerLock.Unlock()
 		//check if the number of found nodes is more than the numNodesTofind
-		length := atomic.AddInt32(&numFoundNodes, 1)
-		if length > numNodesToFind {
-			cancel()
-			atomic.AddInt32(&numFoundNodes, -1)
-		} else {
-			predicateNodes[length-1] = node
-		}
+		//length := atomic.AddInt32(&numFoundNodes, 1)
+		//if length > numNodesToFind {
+		//	cancel()
+		//	atomic.AddInt32(&numFoundNodes, -1)
+		//} else {
+		//	predicateNodes[length-1] = node
+		//}
 	}
 	startTime := time.Now()
 	klog.Infof("++++++++++Predicate Nodes startTime is %v", startTime)
 	//workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), checkNode)
-	workqueue.ParallelizeUntil(ctx, 100, allNodes, checkNode)
+	workqueue.ParallelizeUntil(context.TODO(), 100, 3, checkNode)
 	klog.Infof("++++++++++predicate, after predicateNodes is %v", time.Since(startTime))
 
 	//processedNodes := int(numFoundNodes) + len(filteredNodesStatuses) + len(failedPredicateMap)
-	lastProcessedNodeIndex = (lastProcessedNodeIndex + int(processedNodes)) % allNodes
-	predicateNodes = predicateNodes[:numFoundNodes]
+	//lastProcessedNodeIndex = (lastProcessedNodeIndex + int(processedNodes)) % allNodes
+	//predicateNodes = predicateNodes[:numFoundNodes]
 	return predicateNodes, fe
 }
 
