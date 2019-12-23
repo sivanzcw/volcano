@@ -92,7 +92,7 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	if len(tempNodes) < 3 {
 		nodesNum = len(tempNodes)
 	}
-	predicateNodes := make([]*api.NodeInfo, nodesNum)
+	predicateNodes := make([]*api.NodeInfo, 0, nodesNum)
 
 	//numFoundNodes := int32(0)
 	//processedNodes := int32(0)
