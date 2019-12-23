@@ -18,8 +18,7 @@ package api
 
 import (
 	"fmt"
-
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/klog"
 )
 
@@ -54,6 +53,10 @@ type NodeInfo struct {
 //
 // That is current idle resources plus released resources minus pipelined resources.
 func (ni *NodeInfo) FutureIdle() *Resource {
+	klog.Infof("++++++++++ni is nill %v", ni == nil )
+	klog.Infof("++++++++++ni.Idle is nill %v", ni.Idle == nil )
+	klog.Infof("++++++++++ni.Releasing is nill %v", ni.Releasing == nil )
+	klog.Infof("++++++++++ni.Pipelined is nill %v", ni.Pipelined == nil )
 	return ni.Idle.Clone().Add(ni.Releasing).Sub(ni.Pipelined)
 }
 
