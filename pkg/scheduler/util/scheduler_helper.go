@@ -75,10 +75,10 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 
 	for i := 0; i < len(tempNodes)-1; i++ {
 		for j := i + 1; j < len(tempNodes); j++ {
-			if nodes[i].FutureIdle().Less(nodes[j].FutureIdle()) {
+			if tempNodes[i].FutureIdle().Less(tempNodes[j].FutureIdle()) {
 				temp := tempNodes[i].Clone()
-				nodes[i] = tempNodes[j].Clone()
-				nodes[j] = temp
+				tempNodes[i] = tempNodes[j].Clone()
+				tempNodes[j] = temp
 			}
 		}
 	}
