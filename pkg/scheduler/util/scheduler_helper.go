@@ -88,7 +88,11 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	//numNodesToFind := CalculateNumOfFeasibleNodesToFind(int32(allNodes))
 
 	//allocate enough space to avoid growing it
-	predicateNodes := make([]*api.NodeInfo, 3)
+	nodesNum := 3
+	if len(tempNodes) < 3 {
+		nodesNum = len(tempNodes)
+	}
+	predicateNodes := make([]*api.NodeInfo, nodesNum)
 
 	//numFoundNodes := int32(0)
 	//processedNodes := int32(0)
@@ -134,7 +138,7 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	startTime := time.Now()
 	klog.Infof("++++++++++Predicate Nodes startTime is %v", startTime)
 	//workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), checkNode)
-	workqueue.ParallelizeUntil(context.TODO(), 100, 3, checkNode)
+	workqueue.ParallelizeUntil(context.TODO(), 100, nodesNum, checkNode)
 	klog.Infof("++++++++++predicate, after predicateNodes is %v", time.Since(startTime))
 
 	//processedNodes := int(numFoundNodes) + len(filteredNodesStatuses) + len(failedPredicateMap)
