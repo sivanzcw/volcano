@@ -107,7 +107,7 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 			return api.NewFitError(task, node, api.NodeResourceFitFailed)
 		}
 
-		return ssn.PredicateFn(task, node)
+		return nil
 	}
 
 	// To pick <namespace, queue> tuple for job, we choose to pick namespace firstly.
