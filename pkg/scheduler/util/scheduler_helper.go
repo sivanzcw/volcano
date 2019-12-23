@@ -68,7 +68,7 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	fe := api.NewFitErrors()
 	var workerLock sync.Mutex
 	sortStartTime := time.Now()
-	tempNodes := make([]*api.NodeInfo, len(nodes))
+	tempNodes := make([]*api.NodeInfo, 0, len(nodes))
 	for i := range nodes {
 		tempNodes = append(tempNodes, nodes[i].Clone())
 	}
