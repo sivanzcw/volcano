@@ -90,15 +90,17 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 
 		// TODO (k82cn): Enable eCache for performance improvement.
 		startTime := time.Now()
-		klog.Infof("++++++++++Single Predicate Nodes startTime is %v", startTime)
-		if err := fn(task, node); err != nil {
-			klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s>: %v",
-				task.Namespace, task.Name, node.Name, err)
-			//errorLock.Lock()
-			//fe.SetNodeError(node.Name, err)
-			//errorLock.Unlock()
+		if !task.InitResreq.LessEqual(node.FutureIdle()) {
 			return
 		}
+		//if err := fn(task, node); err != nil {
+		//	klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s>: %v",
+		//		task.Namespace, task.Name, node.Name, err)
+		//	//errorLock.Lock()
+		//	//fe.SetNodeError(node.Name, err)
+		//	//errorLock.Unlock()
+		//	return
+		//}
 		klog.Infof("++++++++++single predicate nodes, after predicateNodes is %v", time.Since(startTime))
 
 		//check if the number of found nodes is more than the numNodesTofind
