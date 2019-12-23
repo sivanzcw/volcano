@@ -216,6 +216,13 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 					klog.Errorf("Failed to bind Task %v on %v in Session %v, err: %v",
 						task.UID, node.Name, ssn.UID, err)
 				}
+				for i, n := range allNodes {
+					if n.Name == node.Name {
+						allNodes = append(allNodes[:i], allNodes[i+1:]...)
+						break
+					}
+				}
+				allNodes = append(allNodes, node)
 			} else {
 				//store information about missing resources
 				job.NodesFitDelta[node.Name] = node.Idle.Clone()
@@ -231,13 +238,6 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 						klog.Errorf("Failed to pipeline Task %v on %v in Session %v for %v.",
 							task.UID, node.Name, ssn.UID, err)
 					}
-					for i, n := range allNodes {
-						if n.Name == node.Name {
-							allNodes = append(allNodes[:i], allNodes[i+1:]...)
-							break
-						}
-					}
-					allNodes = append(allNodes, node)
 				}
 			}
 
