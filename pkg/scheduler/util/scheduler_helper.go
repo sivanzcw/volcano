@@ -60,6 +60,28 @@ func CalculateNumOfFeasibleNodesToFind(numAllNodes int32) (numNodes int32) {
 	return numNodes
 }
 
+type Pair struct {
+	Key   string
+	Value *api.NodeInfo
+}
+
+type PairList []Pair
+
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[j].Value.FutureIdle().Less(p[i].Value.FutureIdle()) }
+
+func SortMapByValue(m map[string]*api.NodeInfo) PairList {
+	p := make(PairList, len(m))
+	i := 0
+	for k, v := range m {
+		p[i] = Pair{k, v}
+		i++
+	}
+	sort.Sort(p)
+	return p
+}
+
 // PredicateNodes returns the specified number of nodes that fit a task
 func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateFn) ([]*api.NodeInfo, *api.FitErrors) {
 	//var workerLock sync.Mutex
@@ -68,19 +90,25 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	fe := api.NewFitErrors()
 	var workerLock sync.Mutex
 	sortStartTime := time.Now()
-	tempNodes := make([]*api.NodeInfo, 0, len(nodes))
+	timeMap := make(map[string]*api.NodeInfo)
 	for i := range nodes {
-		tempNodes = append(tempNodes, nodes[i].Clone())
+		timeMap[nodes[i].Name] = nodes[i].Clone()
 	}
-
-	for i := 0; i < len(tempNodes)-1; i++ {
-		for j := i + 1; j < len(tempNodes); j++ {
-			if tempNodes[i].FutureIdle().Less(tempNodes[j].FutureIdle()) {
-				temp := tempNodes[i].Clone()
-				tempNodes[i] = tempNodes[j].Clone()
-				tempNodes[j] = temp
-			}
-		}
+	klog.Infof("++++++++++after clone is %v", time.Since(sortStartTime))
+	//
+	//for i := 0; i < len(tempNodes)-1; i++ {
+	//	for j := i + 1; j < len(tempNodes); j++ {
+	//		if tempNodes[i].FutureIdle().Less(tempNodes[j].FutureIdle()) {
+	//			temp := tempNodes[i].Clone()
+	//			tempNodes[i] = tempNodes[j].Clone()
+	//			tempNodes[j] = temp
+	//		}
+	//	}
+	//}
+	p := SortMapByValue(timeMap)
+	tempNodes := make([]*api.NodeInfo, 0, len(nodes))
+	for _, v := range p {
+		tempNodes = append(tempNodes, v.Value)
 	}
 	klog.Infof("++++++++++sortTime is %v", time.Since(sortStartTime))
 
