@@ -115,11 +115,11 @@ func PredicateNodes(task *api.TaskInfo, nodes []*api.NodeInfo, fn api.PredicateF
 	startTime := time.Now()
 	klog.Infof("++++++++++Predicate Nodes startTime is %v", startTime)
 	//workqueue.ParallelizeUntil(context.TODO(), 16, len(nodes), checkNode)
-	workqueue.ParallelizeUntil(ctx, 100, allNodes, checkNode)
+	workqueue.ParallelizeUntil(ctx, 100, int(numNodesToFind), checkNode)
 	klog.Infof("++++++++++predicate, after predicateNodes is %v", time.Since(startTime))
 
 	//processedNodes := int(numFoundNodes) + len(filteredNodesStatuses) + len(failedPredicateMap)
-	lastProcessedNodeIndex = (lastProcessedNodeIndex + int(processedNodes)) % allNodes
+	//lastProcessedNodeIndex = (lastProcessedNodeIndex + int(processedNodes)) % allNodes
 	predicateNodes = predicateNodes[:numFoundNodes]
 	return predicateNodes, fe
 }
