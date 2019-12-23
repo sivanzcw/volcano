@@ -252,6 +252,7 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 		// Added Namespace back until no job in Namespace.
 		namespaces.Push(namespace)
 	}
+	klog.Infof("++++++++++total Time is %v", time.Since(startTime))
 }
 
 func (alloc *allocateAction) UnInitialize() {}
