@@ -231,6 +231,10 @@ func (alloc *allocateAction) Execute(ssn *framework.Session) {
 
 		if ssn.JobReady(job) {
 			stmt.Commit()
+		} else if ssn.JobCandidateReady(job) {
+			klog.V(3).Infof("Job <%v/%v> is candidate ready considering best effort pods under the job,"+
+				"allocate tasks <%v> of the job.",
+				job.Namespace, job.Name, job.TaskStatusIndex[api.Allocated])
 		} else {
 			stmt.Discard()
 		}

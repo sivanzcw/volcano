@@ -390,6 +390,21 @@ func (ji *JobInfo) Ready() bool {
 	return occupied >= ji.MinAvailable
 }
 
+// CandidateReady returns whether job is ready considering the best effort tasks
+func (ji *JobInfo) CandidateReady() bool {
+	var occupied int32
+	for _, task := range ji.Tasks {
+		if task.InitResreq.IsEmpty() {
+			occupied++
+		} else if AllocatedStatus(task.Status) ||
+			task.Status == Succeeded {
+			occupied++
+		}
+	}
+
+	return occupied >= ji.MinAvailable
+}
+
 // Pipelined returns whether the number of ready and pipelined task is enough
 func (ji *JobInfo) Pipelined() bool {
 	occupied := ji.WaitingTaskNum() + ji.ReadyTaskNum()

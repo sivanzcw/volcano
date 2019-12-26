@@ -49,6 +49,8 @@ type PluginOption struct {
 	EnabledNamespaceOrder *bool `yaml:"enableNamespaceOrder"`
 	// EnabledJobReady defines whether jobReadyFn is enabled
 	EnabledJobReady *bool `yaml:"enableJobReady"`
+	// EnabledJobCandidateReady defines whether jobCandidateReadyFn is enabled
+	EnabledJobCandidateReady *bool `yaml:"enableJobCandidateReady"`
 	// EnabledJobPipelined defines whether jobPipelinedFn is enabled
 	EnabledJobPipelined *bool `yaml:"enableJobPipelined"`
 	// EnabledTaskOrder defines whether taskOrderFn is enabled

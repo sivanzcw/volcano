@@ -57,6 +57,11 @@ func (ssn *Session) AddJobReadyFn(name string, vf api.ValidateFn) {
 	ssn.jobReadyFns[name] = vf
 }
 
+// AddJobCandidateReadyFn add JobCandidateReady function
+func (ssn *Session) AddJobCandidateReadyFn(name string, vf api.ValidateFn) {
+	ssn.jobCandidateReadyFns[name] = vf
+}
+
 // AddJobPipelinedFn add pipelined function
 func (ssn *Session) AddJobPipelinedFn(name string, vf api.ValidateFn) {
 	ssn.jobPipelinedFns[name] = vf
@@ -212,6 +217,27 @@ func (ssn *Session) JobReady(obj interface{}) bool {
 				continue
 			}
 			jrf, found := ssn.jobReadyFns[plugin.Name]
+			if !found {
+				continue
+			}
+
+			if !jrf(obj) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// JobCandidateReady invoke jobCandidateReady function of the plugins
+func (ssn *Session) JobCandidateReady(obj interface{}) bool {
+	for _, tier := range ssn.Tiers {
+		for _, plugin := range tier.Plugins {
+			if !isEnabled(plugin.EnabledJobCandidateReady) {
+				continue
+			}
+			jrf, found := ssn.jobCandidateReadyFns[plugin.Name]
 			if !found {
 				continue
 			}
