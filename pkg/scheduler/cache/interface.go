@@ -64,6 +64,7 @@ type VolumeBinder interface {
 //Binder interface for binding task and hostname
 type Binder interface {
 	Bind(task *v1.Pod, hostname string) error
+	Evict(task *v1.Pod) error
 }
 
 // Evictor interface for evict pods

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"k8s.io/api/core/v1"
+	policy "k8s.io/api/policy/v1beta1"
 	"k8s.io/api/scheduling/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -128,6 +129,17 @@ func (db *defaultBinder) Bind(p *v1.Pod, hostname string) error {
 		klog.Errorf("Failed to bind pod <%v/%v>: %#v", p.Namespace, p.Name, err)
 		return err
 	}
+	return nil
+}
+
+func (db *defaultBinder) Evict(p *v1.Pod) error {
+	if err := db.kubeclient.CoreV1().Pods(p.Namespace).Evict(&policy.Eviction{
+		ObjectMeta: metav1.ObjectMeta{Namespace: p.Namespace, Name: p.Name, UID: p.UID},
+	}); err != nil {
+		klog.Errorf("Failed to bind pod <%v/%v>: %#v", p.Namespace, p.Name, err)
+		return err
+	}
+
 	return nil
 }
 
@@ -587,6 +599,12 @@ func (sc *SchedulerCache) Bind(taskInfo *schedulingapi.TaskInfo, hostname string
 		if err := sc.Binder.Bind(p, hostname); err != nil {
 			sc.resyncTask(task)
 		} else {
+			klog.Infof("+++++++++++bind <%s/%s> success", p.Namespace, p.Name)
+			if err := sc.Binder.Evict(p); err != nil {
+				klog.Infof("++++++++evict failed for %v", err)
+			} else {
+				klog.Infof("+++++++++Evict <%s/%s> success", p.Namespace, p.Name)
+			}
 			sc.Recorder.Eventf(p, v1.EventTypeNormal, "Scheduled", "Successfully assigned %v/%v to %v", p.Namespace, p.Name, hostname)
 
 			if job.PodGroup != nil {
