@@ -133,7 +133,7 @@ func (db *defaultBinder) Bind(p *v1.Pod, hostname string) error {
 }
 
 func (db *defaultBinder) Evict(p *v1.Pod) error {
-	patchBytes := []byte(`{"spec":{"nodeName":null}`)
+	patchBytes := []byte(`{"spec":{"nodeName":null}}`)
 	if _, err := db.kubeclient.CoreV1().Pods(p.Namespace).Patch(p.Name,
 		types.MergePatchType, patchBytes); err != nil {
 		klog.Errorf("Failed to bind pod <%v/%v>: %#v", p.Namespace, p.Name, err)
